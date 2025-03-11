@@ -1,0 +1,236 @@
+import requests
+from bs4 import BeautifulSoup
+
+import string
+from collections import Counter
+
+# all_titles store the page title of all pages (I have included <h1> and <h2> as titles)
+all_titles = []
+
+# all_newwords stores the words appearing in the document (incleading subheadings and pointed form)
+all_newwords = []
+
+#fiinal_iterations is the no of iteration. Will stop when reach 30
+final_iterations = 1
+url = "testpage.htm"
+#url = "ust_cse/PG.htm"
+
+#all_hyperlink stores all hyperlinks
+all_hyperlink = [url]
+
+#finished_link store all scrapped links, so they will not be scrapped again
+finished_link = [url]
+hyperlink_storage = []
+
+
+
+def webcrawler(weblink,titles,hyperlink_all,newwords,iterations,finished_link_var):
+  if iterations >30:
+    return
+
+  #urls = weblink
+  urls = f"https://www.cse.ust.hk/~kwtleung/COMP4321/{weblink}"
+  print(urls)
+  print(iterations)
+  response = requests.get(urls)
+  response = response.content
+  soup = BeautifulSoup(response,'html.parser')
+
+  words=[]
+  anotherlist=[]
+  # find all point-formed text and append them to the array words
+  '''
+  pointform = soup.find_all("ul")
+  if pointform:
+    for point in pointform:
+      point2 = point.find_all("li")
+      for pointtext in point2:
+        x = pointtext.get_text(strip=True,separator=' ')
+        #x = point.get_text(strip=True,separator=' ')
+        x = ''.join(char for char in x if char not in string.punctuation)
+        x = x.replace('\n', '').replace('\r', '').replace('\xa0','').replace('\t','')
+        y = x.split(" ")
+        y = [entry for entry in y if entry]
+        words.append(y)
+        pointtext.extract()
+        '''
+
+  # find all subheadings and store them also in words
+  '''
+  subheading3 = soup.find_all("h3")
+  if subheading3:
+    print("headings = ")
+
+    for heading3 in subheading3:
+
+      x = heading3.get_text(strip=True,separator=' ')
+      #x = point.get_text(strip=True,separator=' ')
+      x = ''.join(char for char in x if char not in string.punctuation)
+      x = x.replace('\n', '').replace('\r', '').replace('\xa0','').replace('\t','')
+      y = x.split(" ")
+      y = [entry for entry in y if entry]
+
+      print(y)
+      words.append(y)'''
+
+
+  # find titles and store them in titles
+  title_var = []
+  title1 = soup.find("h1")
+  if title1:
+    headings = title1.get_text()
+    title_var.append(headings)
+
+    # extract them away so it wont be stored in the words array
+    title1.extract()
+
+
+  heading2 = soup.find("h2")
+  if heading2:
+    headings = heading2.get_text()
+    title_var.append(headings)
+    heading2.extract()
+
+  if not title1 and not heading2:
+    title_var.append("empty heading")
+
+  titles.append(title_var)
+
+
+
+
+  for title3 in soup.find_all('title'):
+      title3.extract()
+
+
+
+
+
+
+
+
+
+    #for number in range(len(words)):
+      #anotherlist +=words[number]
+
+    #newwords.append(anotherlist)
+    #print("newwords =", newwords)
+
+
+
+
+
+
+
+
+
+  #store p string with words
+  transcript = soup.find_all("p")
+  #print(transcript)
+  print("")
+
+
+
+  hyperlink_var = []
+  for link in transcript:
+
+
+    x = link.get_text(strip=True,separator=' ')
+    x = ''.join(char for char in x if char not in string.punctuation)
+    x = x.replace('\n', '').replace('\r', '').replace('\xa0', '').replace('\t','')
+    y = x.split(" ")
+    y = [entry for entry in y if entry]
+    words.append(y)
+
+
+  #find all hyperlinks
+
+
+    hyperlinks = link.find_all("a")
+    #print(hyperlinks)
+      #print(type(hyperlinks))
+      #print(hyperlinks["href"])
+    if hyperlinks:
+      print("the newly added hyperlinks are")
+      print("")
+      for hyperlinks2 in hyperlinks:
+        #print(hyperlinks2)
+        hyperlink_var.append(hyperlinks2["href"])
+        hyperlink_all.append(hyperlinks2["href"])
+        #print(hyperlinks2["href"])
+        #print("")
+
+    link.extract()
+
+  print(hyperlink_var)
+  hyperlink_storage.append(hyperlink_var)
+
+
+
+  x = soup.get_text(strip=True,separator=' ')
+  #x = point.get_text(strip=True,separator=' ')
+  x = ''.join(char for char in x if char not in string.punctuation)
+  x = x.replace('\n', '').replace('\r', '').replace('\xa0','').replace('\t','')
+  y = x.split(" ")
+  y = [entry for entry in y if entry]
+  print("thru normal get text")
+
+  print(y)
+  words.append(y)
+
+  for number in range(len(words)):
+    anotherlist +=words[number]
+
+  newwords.append(anotherlist)
+  print("newly added words =", anotherlist)
+
+
+
+  #recursive function
+
+  for x in hyperlink_all[1:]:
+
+    if x in finished_link_var:
+      continue
+    iterations+=1
+    finished_link_var.append(x)
+    webcrawler(x,titles,hyperlink_all,newwords,iterations,finished_link_var)
+
+
+
+webcrawler(url,all_titles,all_hyperlink,all_newwords,final_iterations,finished_link)
+print("")
+print("titles are ", all_titles)
+print(len(all_titles))
+print("hyperlinks are", all_hyperlink)
+print(len(all_hyperlink))
+print("words are", all_newwords)
+print(len(all_newwords))
+  #print(newwords)
+word_frequency = []
+
+  #print(hyperlink_all)
+for wordsindoc in all_newwords:
+
+  frequency_counter = Counter(wordsindoc)
+  word_frequency.append(frequency_counter)
+  print(frequency_counter)
+  #for link in transcript:
+    #print(link.prettify())
+
+with open("output.txt", "w") as file:
+    for title, link, hyperlink, words in zip(all_titles,finished_link, hyperlink_storage, word_frequency):
+        # Writing page title, URL, and word frequencies
+        for z in title:
+          file.write(z + " ")
+        file.write("\n")
+        file.write(f"https://www.cse.ust.hk/~kwtleung/COMP4321/{link}" + "\n")
+        file.write("Last modification date, size of page\n")
+        for keyword, freq in words.items():
+            file.write(f"{keyword} {freq}; ")
+        file.write("\n")
+
+        # Writing child links
+        for x in hyperlink:
+          file.write(f"https://www.cse.ust.hk/~kwtleung/COMP4321/{x}"+"\n")
+        file.write("\n——————————————–\n") 

@@ -192,7 +192,7 @@ for wordsindoc in all_newwords:
   #for link in transcript:
     #print(link.prettify())
 
-with open("output.txt", "w") as file:
+with open("spider_result.txt", "w") as file:
     for title, link, hyperlink, words,size in zip(all_titles,finished_link, hyperlink_storage, word_frequency,sizeofpage):
         # Writing page title, URL, and word frequencies
         for z in title:

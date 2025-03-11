@@ -176,6 +176,11 @@ print(len(all_hyperlink))
 print("words are", all_newwords)
 print(len(all_newwords))
   #print(newwords)
+
+sizeofpage = []
+for newlist in all_newwords:
+  sizeofpage.append(int(len(newlist)))
+
 word_frequency = []
 
   #print(hyperlink_all)
@@ -188,13 +193,13 @@ for wordsindoc in all_newwords:
     #print(link.prettify())
 
 with open("output.txt", "w") as file:
-    for title, link, hyperlink, words in zip(all_titles,finished_link, hyperlink_storage, word_frequency):
+    for title, link, hyperlink, words,size in zip(all_titles,finished_link, hyperlink_storage, word_frequency,sizeofpage):
         # Writing page title, URL, and word frequencies
         for z in title:
           file.write(z + " ")
         file.write("\n")
         file.write(f"https://www.cse.ust.hk/~kwtleung/COMP4321/{link}" + "\n")
-        file.write("Last modification date, size of page\n")
+        file.write(f"Last modification date, {size}\n")
         for keyword, freq in words.items():
             file.write(f"{keyword} {freq}; ")
         file.write("\n")

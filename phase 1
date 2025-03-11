@@ -38,40 +38,9 @@ def webcrawler(weblink,titles,hyperlink_all,newwords,iterations,finished_link_va
 
   words=[]
   anotherlist=[]
-  # find all point-formed text and append them to the array words
-  '''
-  pointform = soup.find_all("ul")
-  if pointform:
-    for point in pointform:
-      point2 = point.find_all("li")
-      for pointtext in point2:
-        x = pointtext.get_text(strip=True,separator=' ')
-        #x = point.get_text(strip=True,separator=' ')
-        x = ''.join(char for char in x if char not in string.punctuation)
-        x = x.replace('\n', '').replace('\r', '').replace('\xa0','').replace('\t','')
-        y = x.split(" ")
-        y = [entry for entry in y if entry]
-        words.append(y)
-        pointtext.extract()
-        '''
+  
 
-  # find all subheadings and store them also in words
-  '''
-  subheading3 = soup.find_all("h3")
-  if subheading3:
-    print("headings = ")
 
-    for heading3 in subheading3:
-
-      x = heading3.get_text(strip=True,separator=' ')
-      #x = point.get_text(strip=True,separator=' ')
-      x = ''.join(char for char in x if char not in string.punctuation)
-      x = x.replace('\n', '').replace('\r', '').replace('\xa0','').replace('\t','')
-      y = x.split(" ")
-      y = [entry for entry in y if entry]
-
-      print(y)
-      words.append(y)'''
 
 
   # find titles and store them in titles

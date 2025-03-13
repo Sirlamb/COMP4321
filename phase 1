@@ -1,6 +1,5 @@
 import requests
 from bs4 import BeautifulSoup
-
 import string
 from collections import Counter
 
@@ -40,30 +39,41 @@ def webcrawler(weblink,titles,hyperlink_all,newwords,iterations,finished_link_va
   anotherlist=[]
   
 
-
-
-
   # find titles and store them in titles
-  title_var = []
-  title1 = soup.find("h1")
+
+  title1 = soup.find_all("h1")
   if title1:
-    headings = title1.get_text()
-    title_var.append(headings)
-
-    # extract them away so it wont be stored in the words array
-    title1.extract()
+    for link in title1:
 
 
-  heading2 = soup.find("h2")
+      x = link.get_text(strip=True,separator=' ')
+      x = ''.join(char for char in x if char not in string.punctuation)
+      x = x.replace('\n', '').replace('\r', '').replace('\xa0', '').replace('\t','')
+      y = x.split(" ")
+      y = [entry for entry in y if entry]
+      words.append(y)
+      link.extract()
+
+
+
+
+  heading2 = soup.find_all("h2")
   if heading2:
-    headings = heading2.get_text()
-    title_var.append(headings)
-    heading2.extract()
+    for link in heading2:
 
-  if not title1 and not heading2:
-    title_var.append("empty heading")
 
+      x = link.get_text(strip=True,separator=' ')
+      x = ''.join(char for char in x if char not in string.punctuation)
+      x = x.replace('\n', '').replace('\r', '').replace('\xa0', '').replace('\t','')
+      y = x.split(" ")
+      y = [entry for entry in y if entry]
+      words.append(y)
+      link.extract()
+
+  title_var = soup.find('title')
+  title_var = title_var.get_text()
   titles.append(title_var)
+  print(title_var)
 
 
 
@@ -195,9 +205,8 @@ for wordsindoc in all_newwords:
 with open("spider_result.txt", "w") as file:
     for title, link, hyperlink, words,size in zip(all_titles,finished_link, hyperlink_storage, word_frequency,sizeofpage):
         # Writing page title, URL, and word frequencies
-        for z in title:
-          file.write(z + " ")
-        file.write("\n")
+
+        file.write(title + "\n ")
         file.write(f"https://www.cse.ust.hk/~kwtleung/COMP4321/{link}" + "\n")
         file.write(f"Last modification date, {size}\n")
         for keyword, freq in words.items():
@@ -207,4 +216,4 @@ with open("spider_result.txt", "w") as file:
         # Writing child links
         for x in hyperlink:
           file.write(f"https://www.cse.ust.hk/~kwtleung/COMP4321/{x}"+"\n")
-        file.write("\n——————————————–\n") 
+        file.write("\n——————————————–\n")

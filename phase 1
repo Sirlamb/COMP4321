@@ -215,7 +215,7 @@ with open("spider_result.txt", "w") as file:
         file.write(f"{date}, {size}\n")
         word_display = 0
         for keyword, freq in words.items():
-            if word_display < 1000:
+            if word_display < 10:
               file.write(f"{keyword} {freq}; ")
               word_display += 1
             else:
@@ -226,7 +226,7 @@ with open("spider_result.txt", "w") as file:
         # Writing child links
         hyperlink_display = 0
         for x in hyperlink:
-          if hyperlink_display < 1000:
+          if hyperlink_display < 10:
             file.write(f"https://www.cse.ust.hk/~kwtleung/COMP4321/{x}"+"\n")
             hyperlink_display += 1
           else:

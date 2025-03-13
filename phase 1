@@ -21,7 +21,8 @@ all_hyperlink = [url]
 finished_link = [url]
 hyperlink_storage = []
 
-
+#last modified date
+all_date = []
 
 def webcrawler(weblink,titles,hyperlink_all,newwords,iterations,finished_link_var):
   if iterations >30:
@@ -32,12 +33,15 @@ def webcrawler(weblink,titles,hyperlink_all,newwords,iterations,finished_link_va
   print(urls)
   print(iterations)
   response = requests.get(urls)
-  response = response.content
-  soup = BeautifulSoup(response,'html.parser')
+  soup = BeautifulSoup(response.content,'html.parser')
 
   words=[]
   anotherlist=[]
   
+  last_modified_date = response.headers.get('Last-Modified')
+  if last_modified_date:
+    all_date.append(last_modified_date)
+
 
   # find titles and store them in titles
 
@@ -203,17 +207,29 @@ for wordsindoc in all_newwords:
     #print(link.prettify())
 
 with open("spider_result.txt", "w") as file:
-    for title, link, hyperlink, words,size in zip(all_titles,finished_link, hyperlink_storage, word_frequency,sizeofpage):
+    for title, link, hyperlink, words, size, date in zip(all_titles, finished_link, hyperlink_storage, word_frequency, sizeofpage, all_date):
         # Writing page title, URL, and word frequencies
 
         file.write(title + "\n ")
         file.write(f"https://www.cse.ust.hk/~kwtleung/COMP4321/{link}" + "\n")
-        file.write(f"Last modification date, {size}\n")
+        file.write(f"{date}, {size}\n")
+        word_display = 0
         for keyword, freq in words.items():
-            file.write(f"{keyword} {freq}; ")
+            if word_display < 1000:
+              file.write(f"{keyword} {freq}; ")
+              word_display += 1
+            else:
+              file.write("...")
+              break
         file.write("\n")
 
         # Writing child links
+        hyperlink_display = 0
         for x in hyperlink:
-          file.write(f"https://www.cse.ust.hk/~kwtleung/COMP4321/{x}"+"\n")
-        file.write("\n——————————————–\n")
+          if hyperlink_display < 1000:
+            file.write(f"https://www.cse.ust.hk/~kwtleung/COMP4321/{x}"+"\n")
+            hyperlink_display += 1
+          else:
+            file.write("...\n")
+            break
+        file.write("——————————————–\n")

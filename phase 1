@@ -137,9 +137,12 @@ def webcrawler(weblink,titles,hyperlink_all,newwords,iterations,finished_link_va
       print("the newly added hyperlinks are")
       print("")
       for hyperlinks2 in hyperlinks:
+        link2 = hyperlinks2["href"]
+        if link2.startswith("../"):
+          link2 = link2[3:]
         #print(hyperlinks2)
-        hyperlink_var.append(hyperlinks2["href"])
-        hyperlink_all.append(hyperlinks2["href"])
+        hyperlink_var.append(link2)
+        hyperlink_all.append(link2)
         #print(hyperlinks2["href"])
         #print("")
 

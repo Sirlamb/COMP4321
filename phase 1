@@ -56,7 +56,7 @@ def webcrawler(weblink,titles,hyperlink_all,newwords,iterations,finished_link_va
       y = x.split(" ")
       y = [entry for entry in y if entry]
       words.append(y)
-      link.extract()
+
 
 
 
@@ -72,7 +72,7 @@ def webcrawler(weblink,titles,hyperlink_all,newwords,iterations,finished_link_va
       y = x.split(" ")
       y = [entry for entry in y if entry]
       words.append(y)
-      link.extract()
+
 
   title_var = soup.find('title')
   title_var = title_var.get_text()
@@ -82,8 +82,7 @@ def webcrawler(weblink,titles,hyperlink_all,newwords,iterations,finished_link_va
 
 
 
-  for title3 in soup.find_all('title'):
-      title3.extract()
+
 
 
 
@@ -235,4 +234,4 @@ with open("spider_result.txt", "w") as file:
           else:
             file.write("...\n")
             break
-        file.write("——————————————–\n")
+        file.write("— — — — — — — — — — — — — — –\n")

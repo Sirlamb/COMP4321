@@ -1,7 +1,13 @@
-# COMP4321 phase 1
-The code can be run using google colab. If Vscode or other IDE are used to run the code, run the following commands.
+# About this project
 
-pip install beautifulsoup4
+This is a search engine implementation. It consists of 3 main parts: web crawler, retrivel database system, and search engine website.
 
-python -m pip install requests
+# How to use
+The project is based on Python, version 3.10 or above
+
+To run the program, users should do the following.
+
+install the required packages
+    
+    pip install -r requirements.txt
 

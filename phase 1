@@ -56,6 +56,7 @@ def webcrawler(weblink,titles,hyperlink_all,newwords,iterations,finished_link_va
       y = x.split(" ")
       y = [entry for entry in y if entry]
       words.append(y)
+      link.extract()
 
 
 
@@ -72,6 +73,7 @@ def webcrawler(weblink,titles,hyperlink_all,newwords,iterations,finished_link_va
       y = x.split(" ")
       y = [entry for entry in y if entry]
       words.append(y)
+      link.extract()
 
 
   title_var = soup.find('title')
@@ -165,6 +167,8 @@ def webcrawler(weblink,titles,hyperlink_all,newwords,iterations,finished_link_va
 
   for number in range(len(words)):
     anotherlist +=words[number]
+
+  anotherlist = [word.lower() for word in anotherlist]
 
   newwords.append(anotherlist)
   print("newly added words =", anotherlist)

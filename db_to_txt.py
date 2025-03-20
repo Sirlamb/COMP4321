@@ -20,7 +20,7 @@ with open('spider_result.txt', 'w', encoding='utf-8') as file:
         # keyword info
         cursor.execute(f'SELECT * FROM index_table WHERE page_id = {link_id}')
         rows = cursor.fetchall()
-        for row in rows: # [:10]
+        for row in rows[:10]:
             _, keyword_id, frequency = row
             cursor.execute(f'SELECT * FROM keyword_2_id WHERE keyword_id = {keyword_id}')
             _, keyword = cursor.fetchone()
@@ -30,7 +30,7 @@ with open('spider_result.txt', 'w', encoding='utf-8') as file:
         # child info
         cursor.execute(f'SELECT * FROM parent_child WHERE parent_id = {link_id}')
         rows = cursor.fetchall()
-        for row in rows: # [:10]
+        for row in rows[:10]:
             _, child_id = row
             cursor.execute(f'SELECT * FROM link_2_id WHERE link_id = {child_id}')
             _, url = cursor.fetchone()

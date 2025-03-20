@@ -3,4 +3,5 @@ The code can be run using google colab. If Vscode or other IDE are used to run t
 
 pip install beautifulsoup4
 
+python -m pip install requests
 

@@ -116,6 +116,8 @@ def webcrawler(weblink,titles,hyperlink_all,newwords,iterations,finished_link_va
   for number in range(len(words)):
     anotherlist +=words[number]
 
+  anotherlist = [word.lower() for word in anotherlist]
+
   newwords.append(anotherlist)
   # print("newly added words =", anotherlist)
 

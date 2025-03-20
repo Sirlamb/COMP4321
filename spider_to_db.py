@@ -53,6 +53,7 @@ def webcrawler(weblink,titles,hyperlink_all,newwords,iterations,finished_link_va
       y = x.split(" ")
       y = [entry for entry in y if entry]
       words.append(y)
+      link.extract()
 
   heading2 = soup.find_all("h2")
   if heading2:
@@ -64,6 +65,7 @@ def webcrawler(weblink,titles,hyperlink_all,newwords,iterations,finished_link_va
       y = x.split(" ")
       y = [entry for entry in y if entry]
       words.append(y)
+      link.extract()
 
   title_var = soup.find('title')
   title_var = title_var.get_text()

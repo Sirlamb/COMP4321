@@ -30,8 +30,7 @@ def webcrawler(weblink,titles,hyperlink_all,newwords,iterations,finished_link_va
 
   #urls = weblink
   urls = f"https://www.cse.ust.hk/~kwtleung/COMP4321/{weblink}"
-  print(urls)
-  print(iterations)
+
   response = requests.get(urls)
   soup = BeautifulSoup(response.content,'html.parser')
 
@@ -79,7 +78,6 @@ def webcrawler(weblink,titles,hyperlink_all,newwords,iterations,finished_link_va
   title_var = soup.find('title')
   title_var = title_var.get_text()
   titles.append(title_var)
-  print(title_var)
 
 
 
@@ -94,11 +92,7 @@ def webcrawler(weblink,titles,hyperlink_all,newwords,iterations,finished_link_va
 
 
 
-    #for number in range(len(words)):
-      #anotherlist +=words[number]
 
-    #newwords.append(anotherlist)
-    #print("newwords =", newwords)
 
 
 
@@ -135,8 +129,7 @@ def webcrawler(weblink,titles,hyperlink_all,newwords,iterations,finished_link_va
       #print(type(hyperlinks))
       #print(hyperlinks["href"])
     if hyperlinks:
-      print("the newly added hyperlinks are")
-      print("")
+
       for hyperlinks2 in hyperlinks:
         link2 = hyperlinks2["href"]
         if link2.startswith("../"):
@@ -149,7 +142,7 @@ def webcrawler(weblink,titles,hyperlink_all,newwords,iterations,finished_link_va
 
     link.extract()
 
-  print(hyperlink_var)
+
   hyperlink_storage.append(hyperlink_var)
 
 
@@ -160,9 +153,9 @@ def webcrawler(weblink,titles,hyperlink_all,newwords,iterations,finished_link_va
   x = x.replace('\n', '').replace('\r', '').replace('\xa0','').replace('\t','')
   y = x.split(" ")
   y = [entry for entry in y if entry]
-  print("thru normal get text")
 
-  print(y)
+
+
   words.append(y)
 
   for number in range(len(words)):
@@ -171,7 +164,7 @@ def webcrawler(weblink,titles,hyperlink_all,newwords,iterations,finished_link_va
   anotherlist = [word.lower() for word in anotherlist]
 
   newwords.append(anotherlist)
-  print("newly added words =", anotherlist)
+
 
 
 
@@ -188,14 +181,7 @@ def webcrawler(weblink,titles,hyperlink_all,newwords,iterations,finished_link_va
 
 
 webcrawler(url,all_titles,all_hyperlink,all_newwords,final_iterations,finished_link)
-print("")
-print("titles are ", all_titles)
-print(len(all_titles))
-print("hyperlinks are", all_hyperlink)
-print(len(all_hyperlink))
-print("words are", all_newwords)
-print(len(all_newwords))
-  #print(newwords)
+
 
 sizeofpage = []
 for newlist in all_newwords:
@@ -208,7 +194,7 @@ for wordsindoc in all_newwords:
 
   frequency_counter = Counter(wordsindoc)
   word_frequency.append(frequency_counter)
-  print(frequency_counter)
+
   #for link in transcript:
     #print(link.prettify())
 

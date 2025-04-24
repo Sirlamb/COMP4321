@@ -34,7 +34,7 @@ def webcrawler(weblink,titles,hyperlink_all,newwords,iterations,finished_link_va
 
   urls = f"https://www.cse.ust.hk/~kwtleung/COMP4321/{weblink}"
   # print(urls)
-  # print(iterations)
+  print(iterations)
   response = requests.get(urls)
   soup = BeautifulSoup(response.content,'html.parser')
 

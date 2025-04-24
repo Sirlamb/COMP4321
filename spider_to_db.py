@@ -29,7 +29,7 @@ hyperlink_storage = []
 all_date = []
 
 def webcrawler(weblink,titles,hyperlink_all,newwords,iterations,finished_link_var):
-  if iterations >30:
+  if iterations > 300:
     return
 
   urls = f"https://www.cse.ust.hk/~kwtleung/COMP4321/{weblink}"

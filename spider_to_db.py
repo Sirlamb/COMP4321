@@ -4,6 +4,12 @@ import string
 # from collections import Counter
 import sqlite3
 import time
+import nltk
+import spacy
+from nltk.stem import PorterStemmer
+from nltk import ngrams
+from collections import Counter
+
 
 start_time = time.time()
 
@@ -28,8 +34,39 @@ hyperlink_storage = []
 #last modified date
 all_date = []
 
+
+# this can do the Ngram, which will also be applied to the query
+def phrase_extraction(anotherlist_var):
+  bigrams = list(ngrams(anotherlist_var, 2))
+  trigrams = list(ngrams(anotherlist_var, 3))
+
+  bigram_strings = [' '.join(bigram) for bigram in bigrams]
+  trigram_strings = [' '.join(trigram) for trigram in trigrams]
+
+  # Count the frequency of each phrase
+  bigram_freq = Counter(bigram_strings)
+  trigram_freq = Counter(trigram_strings )
+  if len(anotherlist_var)<30:
+  # Filter out the phrase with frequency less than 2
+    bigram_renew = [word for word in bigram_strings if bigram_freq[word] >= 2]
+    trigram_renew = [word for word in trigram_strings if trigram_freq[word] >= 2]
+
+  elif len(anotherlist_var)<100:
+    bigram_renew = [word for word in bigram_strings if bigram_freq[word] >= 3]
+    trigram_renew = [word for word in trigram_strings if trigram_freq[word] >= 3]
+  elif len(anotherlist_var)<150:
+    bigram_renew = [word for word in bigram_strings if bigram_freq[word] >= 4]
+    trigram_renew = [word for word in trigram_strings if trigram_freq[word] >= 4]
+  else:
+    bigram_renew = [word for word in bigram_strings if bigram_freq[word] >= 5]
+    trigram_renew = [word for word in trigram_strings if trigram_freq[word] >= 5]
+  anotherlist_var.extend(bigram_renew)
+  anotherlist_var.extend(trigram_renew)
+  return anotherlist_var
+
 def webcrawler(weblink,titles,hyperlink_all,newwords,iterations,finished_link_var):
-  if iterations > 300:
+  if iterations >= 300:
+
     return
 
   urls = f"https://www.cse.ust.hk/~kwtleung/COMP4321/{weblink}"
@@ -58,6 +95,7 @@ def webcrawler(weblink,titles,hyperlink_all,newwords,iterations,finished_link_va
       y = [entry for entry in y if entry]
       words.append(y)
       link.extract()
+      #remove the headings1 and 2 from the doc after extracting them, afterwise will double mark them
 
   heading2 = soup.find_all("h2")
   if heading2:
@@ -75,6 +113,7 @@ def webcrawler(weblink,titles,hyperlink_all,newwords,iterations,finished_link_va
   title_var = title_var.get_text()
   titles.append(title_var)
   # print(title_var)
+  #the title will be extracted using find_all("p")
 
   #store p string with words
   transcript = soup.find_all("p")
@@ -119,8 +158,11 @@ def webcrawler(weblink,titles,hyperlink_all,newwords,iterations,finished_link_va
 
   for number in range(len(words)):
     anotherlist +=words[number]
+    # put all list tgt to one list
 
   anotherlist = [word.lower() for word in anotherlist]
+
+  anotherlist = phrase_extraction(anotherlist)
 
   newwords.append(anotherlist)
   # print("newly added words =", anotherlist)
@@ -143,26 +185,99 @@ webcrawler(url,all_titles,all_hyperlink,all_newwords,final_iterations,finished_l
 # print("words are", all_newwords)
 # print(len(all_newwords))
 
+
+
+# this is the stemming function, which will also be applied to the query
+def stemming(all_newwords_var):
+  stemmer = PorterStemmer()
+  nlp = spacy.load("en_core_web_sm")
+  new_words_stemming_var = []
+  for word_list in all_newwords_var:
+    storing_var = []
+    for word in word_list:
+      doc = nlp(word)
+      if len(doc)==1:
+
+        for token in doc:
+          x = token.lemma_
+          x = stemmer.stem(x)
+          storing_var.append(x)
+      else:
+        temporary = []
+        for token in doc:
+          x = token.lemma_
+          x = stemmer.stem(x)
+          temporary.append(x)
+        combined_string = ' '.join(temporary)
+        storing_var.append(combined_string)
+
+    new_words_stemming_var.append(storing_var)
+  return new_words_stemming_var
+
 # stopword table
+
+'''with open('stopwords.txt', 'r') as file:
+    stopwords = file.read().splitlines()'''
+
 with open('stopwords.txt', 'r') as file:
     stopwords = file.read().splitlines()
 
-# remove stopword
+#print(all_newwords)
+
 sizeofpage = []
 frequency_position = []
+
+
+for wordsindoc in all_newwords:
+  # need ask whether the size of the doc include stopwords
+  sizeofpage.append(int(len(wordsindoc)))
+
+
+#here start stopword removal and stemming
+
+#remove all stopwords from all the keywords
+
+# remove stopword
+cleaned_words = []
+for sublist in all_newwords:
+  
+  storing = []
+  for wordlist in sublist:
+    words = wordlist.split()
+    num = 0
+    for x in words:
+      if x in stopwords:
+        num=1
+        break
+    if num==0:
+
+      combined_string = ' '.join(words)
+      storing.append(combined_string)
+  cleaned_words.append(storing)
+    
+all_newwords = cleaned_words
+
+
+
+
+
+
+
+all_newwords = stemming(all_newwords)
+#print(all_newwords)
 for wordsindoc in all_newwords:
   # size
-  sizeofpage.append(int(len(wordsindoc)))
 
   # frequency and position
   temp = []
   for i in range(len(wordsindoc)):
     word = wordsindoc[i]
-    if word not in stopwords:
-      frequency = wordsindoc.count(word)
-      temp.append([word, frequency, i])
+    #if word not in stopwords:
+    frequency = wordsindoc.count(word)
+    temp.append([word, frequency, i])
   frequency_position.append(temp)
 
+#print(frequency_position)
 # connect or create database
 conn = sqlite3.connect('database.db')
 c = conn.cursor()

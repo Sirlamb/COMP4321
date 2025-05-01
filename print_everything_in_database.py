@@ -1,8 +1,9 @@
 import sqlite3
 
-tables = ['web_info', 'index_table', 'parent_child', 'keyword_2_id', 'link_2_id']
+tables = ['web_info', 'forward_idx', 'inverted_idx', 'parent_child', 'keyword_2_id', 'link_2_id']
 # web_info: page_id, title, date, size
-# index_table: page_id, keyword_id, frequency
+# forward_idx: page_id, keyword_id, frequency, position
+# inverted_idx, keyword_id, page_id
 # parent_child: parent_id, child_id
 # keyword_2_id: keyword_id, keyword
 # link_2_id: link_id, link

@@ -299,12 +299,19 @@ CREATE TABLE IF NOT EXISTS web_info (
 )
 ''')
 c.execute('''
-CREATE TABLE IF NOT EXISTS index_table (
+CREATE TABLE IF NOT EXISTS forward_idx (
     page_id INTEGER,
     keyword_id INTEGER,
     frequency INTEGER,
     position INTEGER,
     PRIMARY KEY (page_id, keyword_id, position)
+)
+''')
+c.execute('''
+CREATE TABLE IF NOT EXISTS inverted_idx (
+    keyword_id INTEGER,
+    page_id INTEGER,
+    PRIMARY KEY (page_id, keyword_id)
 )
 ''')
 c.execute('''
@@ -370,6 +377,10 @@ for title, link, hyperlink, words, size, date in zip(all_titles, finished_link, 
     INSERT OR REPLACE INTO index_table (page_id, keyword_id, frequency, position)
     VALUES (?, ?, ?, ?)
     ''', (page_id, keyword_id, frequency, position))
+    c.execute('''
+    INSERT OR REPLACE INTO inverted_idx (keyword_id, page_id)
+    VALUES (?, ?)
+    ''', (keyword_id, page_id))
 
   # create link relationship
   for child in hyperlink:

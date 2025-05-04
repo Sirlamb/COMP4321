@@ -63,6 +63,35 @@ def phrase_extraction(anotherlist_var):
   anotherlist_var.extend(bigram_renew)
   anotherlist_var.extend(trigram_renew)
   return anotherlist_var
+def stemming_for_query(all_newwords_var):
+  stemmer = PorterStemmer()
+  nlp = spacy.load("en_core_web_sm")
+  new_words_stemming_var = []
+  for word_list in all_newwords_var:
+    
+
+    doc = nlp(word_list)
+
+    temporary = []
+    for token in doc:
+      x = token.lemma_
+      x = stemmer.stem(x)
+      temporary.append(x)
+    #combined_string = ' '.join(temporary)
+    new_words_stemming_var.append(temporary)
+
+  #new_words_stemming_var.append(storing_var)
+  return new_words_stemming_var
+
+def phrase_extraction_for_query(anotherlist_var):
+  bigrams = list(ngrams(anotherlist_var, 2))
+  trigrams = list(ngrams(anotherlist_var, 3))
+
+  bigram_strings = [' '.join(bigram) for bigram in bigrams]
+  trigram_strings = [' '.join(trigram) for trigram in trigrams]
+  anotherlist_var.extend(bigram_strings)
+  anotherlist_var.extend(trigram_strings)
+  return anotherlist_var
 
 def webcrawler(weblink,titles,hyperlink_all,newwords,iterations,finished_link_var):
   if iterations >= 300:
@@ -219,6 +248,7 @@ def stemming(all_newwords_var):
 '''with open('stopwords.txt', 'r') as file:
     stopwords = file.read().splitlines()'''
 
+
 with open('stopwords.txt', 'r') as file:
     stopwords = file.read().splitlines()
 
@@ -240,7 +270,7 @@ for wordsindoc in all_newwords:
 # remove stopword
 cleaned_words = []
 for sublist in all_newwords:
-  
+
   storing = []
   for wordlist in sublist:
     words = wordlist.split()
@@ -254,7 +284,7 @@ for sublist in all_newwords:
       combined_string = ' '.join(words)
       storing.append(combined_string)
   cleaned_words.append(storing)
-    
+
 all_newwords = cleaned_words
 
 
@@ -277,7 +307,21 @@ for wordsindoc in all_newwords:
     temp.append([word, frequency, i])
   frequency_position.append(temp)
 
-#print(frequency_position)
+
+translator = str.maketrans('', '', string.punctuation)
+
+titles_wout_punct =  [sublist.translate(translator) for sublist in all_titles]
+
+
+titles_test = stemming_for_query(titles_wout_punct)
+#print(titles_test)
+title_index = []
+for x in titles_test :
+  y = phrase_extraction_for_query(x)
+  title_index.append(y)
+
+
+
 # connect or create database
 conn = sqlite3.connect('database.db')
 c = conn.cursor()
@@ -333,7 +377,22 @@ CREATE TABLE IF NOT EXISTS link_2_id (
     link TEXT
 )
 ''')
-
+c.execute('''
+CREATE TABLE IF NOT EXISTS title_forward_index (
+    page_id INTEGER,
+    title_phrase TEXT,
+    PRIMARY KEY (page_id, title_phrase),
+    FOREIGN KEY (page_id) REFERENCES web_info(page_id)
+)
+''')
+c.execute('''
+CREATE TABLE IF NOT EXISTS title_inverted_index (
+    title_phrase TEXT,
+    page_id INTEGER,
+    PRIMARY KEY (title_phrase, page_id),
+    FOREIGN KEY (page_id) REFERENCES web_info(page_id)
+)
+''')
 # prepare word id
 keyword_id_map = {}
 keyword_id_counter = 1
@@ -344,7 +403,7 @@ for words in frequency_position:
       c.execute('''
       INSERT OR REPLACE INTO keyword_2_id (keyword_id, keyword)
       VALUES (?, ?)
-      ''', (keyword_id_counter, keyword))      
+      ''', (keyword_id_counter, keyword))
       keyword_id_counter += 1
 
 # prepare page id
@@ -361,14 +420,28 @@ for link in finished_link:
     page_id_counter += 1
 
 # input data into database
-for title, link, hyperlink, words, size, date in zip(all_titles, finished_link, hyperlink_storage, frequency_position, sizeofpage, all_date):
-  # create web info table
+for idx, (title, link, hyperlink, words, size, date) in enumerate(zip(all_titles, finished_link, hyperlink_storage, frequency_position, sizeofpage, all_date)):  # create web info table
   page_id = page_id_map[link]
   current_link = "https://www.cse.ust.hk/~kwtleung/COMP4321/" + str(link)
   c.execute('''
   INSERT OR REPLACE INTO web_info (page_id, title, date, size)
   VALUES (?, ?, ?, ?)
   ''', (page_id, title, date, size))
+
+
+  title_phrases = title_index[idx]
+  for phrase in title_phrases:
+      # Title forward index
+      c.execute('''
+      INSERT OR IGNORE INTO title_forward_index (page_id, title_phrase)
+      VALUES (?, ?)
+      ''', (page_id, phrase))
+      
+      # Title inverted index
+      c.execute('''
+      INSERT OR IGNORE INTO title_inverted_index (title_phrase, page_id)
+      VALUES (?, ?)
+      ''', (phrase, page_id))
 
   # create index
   for keyword, frequency, position in words:
@@ -389,7 +462,8 @@ for title, link, hyperlink, words, size, date in zip(all_titles, finished_link, 
     INSERT OR REPLACE INTO parent_child (parent_id, child_id)
     VALUES (?, ?)
     ''', (page_id, child_id))
-  
+
+
 conn.commit()
 conn.close()
 print('spider done')

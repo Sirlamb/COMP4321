@@ -374,7 +374,7 @@ for title, link, hyperlink, words, size, date in zip(all_titles, finished_link, 
   for keyword, frequency, position in words:
     keyword_id = keyword_id_map[keyword]
     c.execute('''
-    INSERT OR REPLACE INTO index_table (page_id, keyword_id, frequency, position)
+    INSERT OR REPLACE INTO forward_idx (page_id, keyword_id, frequency, position)
     VALUES (?, ?, ?, ?)
     ''', (page_id, keyword_id, frequency, position))
     c.execute('''

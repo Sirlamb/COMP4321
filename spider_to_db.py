@@ -68,7 +68,7 @@ def stemming_for_query(all_newwords_var):
   nlp = spacy.load("en_core_web_sm")
   new_words_stemming_var = []
   for word_list in all_newwords_var:
-    
+
 
     doc = nlp(word_list)
 
@@ -94,7 +94,7 @@ def phrase_extraction_for_query(anotherlist_var):
   return anotherlist_var
 
 def webcrawler(weblink,titles,hyperlink_all,newwords,iterations,finished_link_var):
-  if iterations >= 300:
+  if iterations >= 10:
 
     return
 
@@ -380,9 +380,11 @@ CREATE TABLE IF NOT EXISTS link_2_id (
 c.execute('''
 CREATE TABLE IF NOT EXISTS title_forward_index (
     page_id INTEGER,
-    title_phrase TEXT,
-    PRIMARY KEY (page_id, title_phrase),
-    FOREIGN KEY (page_id) REFERENCES web_info(page_id)
+    keyword_id INTEGER,
+    count INTEGER,
+    PRIMARY KEY (page_id, keyword_id),
+    FOREIGN KEY (page_id) REFERENCES web_info(page_id),
+    FOREIGN KEY (keyword_id) REFERENCES keyword_2_id(keyword_id)
 )
 ''')
 c.execute('''
@@ -405,6 +407,16 @@ for words in frequency_position:
       VALUES (?, ?)
       ''', (keyword_id_counter, keyword))
       keyword_id_counter += 1
+
+for doc_phrases in title_index:
+    for phrase in doc_phrases:
+        if phrase not in keyword_id_map:
+            keyword_id_map[phrase] = keyword_id_counter
+            c.execute('''
+            INSERT OR REPLACE INTO keyword_2_id (keyword_id, keyword)
+            VALUES (?, ?)
+            ''', (keyword_id_counter, phrase))
+            keyword_id_counter += 1
 
 # prepare page id
 page_id_map = {}
@@ -431,17 +443,20 @@ for idx, (title, link, hyperlink, words, size, date) in enumerate(zip(all_titles
 
   title_phrases = title_index[idx]
   for phrase in title_phrases:
+
+      phrase_counts = Counter(title_phrases)
+      for phrase, count in phrase_counts.items():
+        keyword_id = keyword_id_map[phrase]
       # Title forward index
-      c.execute('''
-      INSERT OR IGNORE INTO title_forward_index (page_id, title_phrase)
-      VALUES (?, ?)
-      ''', (page_id, phrase))
-      
-      # Title inverted index
-      c.execute('''
-      INSERT OR IGNORE INTO title_inverted_index (title_phrase, page_id)
-      VALUES (?, ?)
-      ''', (phrase, page_id))
+        c.execute('''
+          INSERT OR REPLACE INTO title_forward_index (page_id, keyword_id, count)
+          VALUES (?, ?, ?)
+          ''', (page_id, keyword_id, count))
+        # Title inverted index
+        c.execute('''
+        INSERT OR IGNORE INTO title_inverted_index (title_phrase, page_id)
+        VALUES (?, ?)
+        ''', ( keyword_id, page_id))
 
   # create index
   for keyword, frequency, position in words:

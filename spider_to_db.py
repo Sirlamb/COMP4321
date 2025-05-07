@@ -9,6 +9,8 @@ import spacy
 from nltk.stem import PorterStemmer
 from nltk import ngrams
 from collections import Counter
+from collections import defaultdict
+import math
 
 
 start_time = time.time()
@@ -63,6 +65,7 @@ def phrase_extraction(anotherlist_var):
   anotherlist_var.extend(bigram_renew)
   anotherlist_var.extend(trigram_renew)
   return anotherlist_var
+
 def stemming_for_query(all_newwords_var):
   stemmer = PorterStemmer()
   nlp = spacy.load("en_core_web_sm")
@@ -83,6 +86,40 @@ def stemming_for_query(all_newwords_var):
   #new_words_stemming_var.append(storing_var)
   return new_words_stemming_var
 
+# this is the stemming function, which will also be applied to the query
+def stemming(all_newwords_var):
+  stemmer = PorterStemmer()
+  nlp = spacy.load("en_core_web_sm")
+  new_words_stemming_var = []
+
+
+
+
+
+  for word_list in all_newwords_var:
+    storing_var = []
+
+    for word in word_list:
+      doc = nlp(word)
+      if len(doc)==1:
+
+        for token in doc:
+          x = token.lemma_
+          x = stemmer.stem(x)
+          storing_var.append(x)
+      else:
+        temporary = []
+        for token in doc:
+          x = token.lemma_
+          x = stemmer.stem(x)
+          temporary.append(x)
+        combined_string = ' '.join(temporary)
+        storing_var.append(combined_string)
+    new_words_stemming_var.append(storing_var)
+
+  #return a list of stemmed words
+  return new_words_stemming_var
+
 def phrase_extraction_for_query(anotherlist_var):
   bigrams = list(ngrams(anotherlist_var, 2))
   trigrams = list(ngrams(anotherlist_var, 3))
@@ -94,7 +131,7 @@ def phrase_extraction_for_query(anotherlist_var):
   return anotherlist_var
 
 def webcrawler(weblink,titles,hyperlink_all,newwords,iterations,finished_link_var):
-  if iterations >= 10:
+  if iterations >= 25:
 
     return
 
@@ -118,11 +155,15 @@ def webcrawler(weblink,titles,hyperlink_all,newwords,iterations,finished_link_va
     for link in title1:
 
       x = link.get_text(strip=True,separator=' ')
-      x = ''.join(char for char in x if char not in string.punctuation)
+      x = ''.join(' ' if char in string.punctuation else char for char in x)
+
       x = x.replace('\n', '').replace('\r', '').replace('\xa0', '').replace('\t','')
+      x = ' '.join(x.split())
       y = x.split(" ")
-      y = [entry for entry in y if entry]
-      words.append(y)
+      if y:
+        y = [item for item in y if item]
+
+        words.append(y)
       link.extract()
       #remove the headings1 and 2 from the doc after extracting them, afterwise will double mark them
 
@@ -131,11 +172,16 @@ def webcrawler(weblink,titles,hyperlink_all,newwords,iterations,finished_link_va
     for link in heading2:
 
       x = link.get_text(strip=True,separator=' ')
-      x = ''.join(char for char in x if char not in string.punctuation)
+      x = ''.join(' ' if char in string.punctuation else char for char in x)
+
       x = x.replace('\n', '').replace('\r', '').replace('\xa0', '').replace('\t','')
+      x = ' '.join(x.split())
       y = x.split(" ")
-      y = [entry for entry in y if entry]
-      words.append(y)
+      if y:
+        y = [item for item in y if item]
+
+
+        words.append(y)
       link.extract()
 
   title_var = soup.find('title')
@@ -149,42 +195,54 @@ def webcrawler(weblink,titles,hyperlink_all,newwords,iterations,finished_link_va
   # print("")
 
   hyperlink_var = []
-  for link in transcript:
+  if transcript:
+    for link in transcript:
 
-    x = link.get_text(strip=True,separator=' ')
-    x = ''.join(char for char in x if char not in string.punctuation)
-    x = x.replace('\n', '').replace('\r', '').replace('\xa0', '').replace('\t','')
-    y = x.split(" ")
-    y = [entry for entry in y if entry]
-    words.append(y)
+      x = link.get_text(strip=True,separator=' ')
 
-  #find all hyperlinks
-    hyperlinks = link.find_all("a")
-    if hyperlinks:
-      # print("the newly added hyperlinks are")
-      # print("")
-      for hyperlinks2 in hyperlinks:
-        link2 = hyperlinks2["href"]
-        if link2.startswith("../"):
-          link2 = link2[3:]
-        hyperlink_var.append(link2)
-        hyperlink_all.append(link2)
+      #x = ''.join(' ' if char in string.punctuation else char for char in x)
+      x = ''.join(' ' if char in string.punctuation else char for char in x)
 
-    link.extract()
+      x = x.replace('\n', '').replace('\r', '').replace('\xa0', '').replace('\t','')
+      x = ' '.join(x.split())
+      y = x.split(" ")
+      if y:
+        y = [item for item in y if item]
+
+
+        words.append(y)
+
+
+    #find all hyperlinks
+      hyperlinks = link.find_all("a")
+      if hyperlinks:
+        # print("the newly added hyperlinks are")
+        # print("")
+        for hyperlinks2 in hyperlinks:
+          link2 = hyperlinks2["href"]
+          if link2.startswith("../"):
+            link2 = link2[3:]
+          hyperlink_var.append(link2)
+          hyperlink_all.append(link2)
+
+      link.extract()
 
   # print(hyperlink_var)
   hyperlink_storage.append(hyperlink_var)
 
   x = soup.get_text(strip=True,separator=' ')
-  x = ''.join(char for char in x if char not in string.punctuation)
-  x = x.replace('\n', '').replace('\r', '').replace('\xa0','').replace('\t','')
+  x = ''.join(' ' if char in string.punctuation else char for char in x)
+
+  x = x.replace('\n', '').replace('\r', '').replace('\xa0', '').replace('\t','')
+  x = ' '.join(x.split())
   y = x.split(" ")
-  y = [entry for entry in y if entry]
-  # print("thru normal get text")
+  if y:
+    y = [item for item in y if item]
 
-  # print(y)
-  words.append(y)
 
+    words.append(y)
+
+  
   for number in range(len(words)):
     anotherlist +=words[number]
     # put all list tgt to one list
@@ -216,67 +274,34 @@ webcrawler(url,all_titles,all_hyperlink,all_newwords,final_iterations,finished_l
 
 
 
-# this is the stemming function, which will also be applied to the query
-def stemming(all_newwords_var):
-  stemmer = PorterStemmer()
-  nlp = spacy.load("en_core_web_sm")
-  new_words_stemming_var = []
-  for word_list in all_newwords_var:
-    storing_var = []
-    for word in word_list:
-      doc = nlp(word)
-      if len(doc)==1:
-
-        for token in doc:
-          x = token.lemma_
-          x = stemmer.stem(x)
-          storing_var.append(x)
-      else:
-        temporary = []
-        for token in doc:
-          x = token.lemma_
-          x = stemmer.stem(x)
-          temporary.append(x)
-        combined_string = ' '.join(temporary)
-        storing_var.append(combined_string)
-
-    new_words_stemming_var.append(storing_var)
-  return new_words_stemming_var
-
 # stopword table
 
 '''with open('stopwords.txt', 'r') as file:
     stopwords = file.read().splitlines()'''
 
 
-with open('stopwords.txt', 'r') as file:
+with open('/content/gdrive/MyDrive/comp 4321/stopwords.txt', 'r') as file:
     stopwords = file.read().splitlines()
 
-#print(all_newwords)
+
 
 sizeofpage = []
 frequency_position = []
-
-
-for wordsindoc in all_newwords:
-  # need ask whether the size of the doc include stopwords
-  sizeofpage.append(int(len(wordsindoc)))
-
-
-#here start stopword removal and stemming
-
-#remove all stopwords from all the keywords
-
-# remove stopword
 cleaned_words = []
+sizeofpagewoutstopword = []
+
 for sublist in all_newwords:
+  sizeofpage.append(int(len(sublist)))
+  # need ask whether the size of the doc include stopwords we think it is without stopwords
 
   storing = []
   for wordlist in sublist:
     words = wordlist.split()
     num = 0
     for x in words:
-      if x in stopwords:
+
+      if x in stopwords or not x:
+
         num=1
         break
     if num==0:
@@ -284,41 +309,114 @@ for sublist in all_newwords:
       combined_string = ' '.join(words)
       storing.append(combined_string)
   cleaned_words.append(storing)
+  sizeofpagewoutstopword.append(int(len(storing)))
+#print(sizeofpagewoutstopword)
 
+#here the old array all_newwords will be replaced by the new keywords array without stopwords
 all_newwords = cleaned_words
-
-
-
-
-
+'''
+for x in all_newwords:
+  for x_inside in x:
+    if not x_inside:
+      print("yes")'''
 
 
 all_newwords = stemming(all_newwords)
-#print(all_newwords)
-for wordsindoc in all_newwords:
-  # size
+'''
+for x in all_newwords:
+  for x_inside in x:
+    if not x_inside:
+      print("no")'''
 
+term_freq_per_doc = []
+for wordsindoc in all_newwords:
   # frequency and position
   temp = []
+  term_freq = {}
   for i in range(len(wordsindoc)):
     word = wordsindoc[i]
     #if word not in stopwords:
     frequency = wordsindoc.count(word)
     temp.append([word, frequency, i])
+    term_freq[word] = frequency
   frequency_position.append(temp)
+  term_freq_per_doc.append(term_freq)
 
 
-translator = str.maketrans('', '', string.punctuation)
+#title
+#remove all punctuation in the title_list
 
-titles_wout_punct =  [sublist.translate(translator) for sublist in all_titles]
+#translator = str.maketrans('', '', string.punctuation)
+#titles_wout_punct =  [sublist.translate(translator) for sublist in all_titles]
+titles_wout_punct = []
+for sublist in all_titles:
+  x = ''.join(' ' if char in string.punctuation else char for char in sublist)
+  x = ' '.join(x.split())  # Remove extra spaces between words
+
+  titles_wout_punct.append(x)
 
 
 titles_test = stemming_for_query(titles_wout_punct)
 #print(titles_test)
+
+
+
+
+
+content_terms = set()
+title_terms = []
 title_index = []
 for x in titles_test :
   y = phrase_extraction_for_query(x)
+  unique_title_terms = set(y)
   title_index.append(y)
+  title_terms.append(unique_title_terms)
+
+#now  title_terms is an list containing dictionaries with title words and phrase in that document
+
+
+#term selection
+# to do this, we form 2 dictionary. one stores term freqeuncy one stores doc frequency
+doc_freq = defaultdict(int)
+#term_tf = defaultdict(dict)
+total_docs = len(hyperlink_storage)
+
+# Calculate document frequency for non-title terms
+for doc_idx, doc_keywords in enumerate(all_newwords):
+    unique_terms = set(doc_keywords)
+    content_terms.update(unique_terms)
+
+    for term in unique_terms:
+        if term not in title_terms:
+            doc_freq[term] += 1
+            #tf = term_freq_per_doc[doc_idx].get(term, 0)
+            #term_tf[term][doc_idx] = tf
+
+
+TFIDF_THRESHOLD = 0.02
+removed_terms = []
+
+for i in range(len(term_freq_per_doc)):
+
+  for term, frequency_term in term_freq_per_doc[i].items():
+    # get all the unique terms in each document and their term_frequency
+    if term in title_terms[i]:
+      continue
+      #if the term is in title of that document, it should not be removed, so we should keep it
+    term_document_frequency = doc_freq.get(term, 0)
+    #get the document frequecy of the term
+    idf = math.log((total_docs + 1) / (term_document_frequency + 1)) + 1
+    document_size = sizeofpagewoutstopword[i]
+    tf = frequency_term/document_size
+    tfidf = tf * idf
+    if tfidf <=TFIDF_THRESHOLD:
+      filtered_list = [entry for entry in frequency_position[i] if entry[0] != term]
+      frequency_position[i] = filtered_list
+  #print(len(frequency_position[i]), end=' ')
+
+
+#now, after the above coding, the aray frequency_position will remove the terms that shouldnt be treated as keywoords due to its low tfidf
+
 
 
 
@@ -381,7 +479,7 @@ c.execute('''
 CREATE TABLE IF NOT EXISTS title_forward_index (
     page_id INTEGER,
     keyword_id INTEGER,
-    count INTEGER,
+    frequency INTEGER,
     PRIMARY KEY (page_id, keyword_id),
     FOREIGN KEY (page_id) REFERENCES web_info(page_id),
     FOREIGN KEY (keyword_id) REFERENCES keyword_2_id(keyword_id)
@@ -389,9 +487,11 @@ CREATE TABLE IF NOT EXISTS title_forward_index (
 ''')
 c.execute('''
 CREATE TABLE IF NOT EXISTS title_inverted_index (
-    title_phrase TEXT,
+    keyword_id INTEGER,
     page_id INTEGER,
-    PRIMARY KEY (title_phrase, page_id),
+    frequency INTEGER,
+    PRIMARY KEY (keyword_id, page_id),
+    FOREIGN KEY (keyword_id) REFERENCES keyword_2_id(keyword_id),
     FOREIGN KEY (page_id) REFERENCES web_info(page_id)
 )
 ''')
@@ -449,14 +549,14 @@ for idx, (title, link, hyperlink, words, size, date) in enumerate(zip(all_titles
         keyword_id = keyword_id_map[phrase]
       # Title forward index
         c.execute('''
-          INSERT OR REPLACE INTO title_forward_index (page_id, keyword_id, count)
+          INSERT OR REPLACE INTO title_forward_index (page_id, keyword_id, frequency)
           VALUES (?, ?, ?)
           ''', (page_id, keyword_id, count))
         # Title inverted index
         c.execute('''
-        INSERT OR IGNORE INTO title_inverted_index (title_phrase, page_id)
-        VALUES (?, ?)
-        ''', ( keyword_id, page_id))
+        INSERT OR IGNORE INTO title_inverted_index (keyword_id, page_id, frequency)
+        VALUES (?, ?,?)
+        ''', ( keyword_id, page_id, count))
 
   # create index
   for keyword, frequency, position in words:
@@ -485,3 +585,5 @@ print('spider done')
 
 end_time = time.time()
 print('time used:', end_time-start_time)
+
+

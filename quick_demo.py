@@ -18,7 +18,7 @@ def createAdjMatrix(allPages):
     matrixMap = {key: {val: 0 for val in allPages} for key in allPages}
 
     for page in allPages:
-        children = cursor.execute("SELECT child_id FROM relation WHERE parent_id = ?", (page,)).fetchall()
+        children = cursor.execute("SELECT child_id FROM parent_child WHERE parent_id = ?", (page,)).fetchall()
         for child in children:
             matrixMap[page][child[0]] = 1
 

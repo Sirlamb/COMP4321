@@ -66,6 +66,10 @@ def phrase_extraction(anotherlist_var):
   anotherlist_var.extend(trigram_renew)
   return anotherlist_var
 
+
+
+
+
 def stemming_for_query(all_newwords_var):
   stemmer = PorterStemmer()
   nlp = spacy.load("en_core_web_sm")
@@ -91,10 +95,6 @@ def stemming(all_newwords_var):
   stemmer = PorterStemmer()
   nlp = spacy.load("en_core_web_sm")
   new_words_stemming_var = []
-
-
-
-
 
   for word_list in all_newwords_var:
     storing_var = []
@@ -155,6 +155,7 @@ def webcrawler(weblink,titles,hyperlink_all,newwords,iterations,finished_link_va
     for link in title1:
 
       x = link.get_text(strip=True,separator=' ')
+      x = x.replace("'", "") 
       x = ''.join(' ' if char in string.punctuation else char for char in x)
 
       x = x.replace('\n', '').replace('\r', '').replace('\xa0', '').replace('\t','')
@@ -172,6 +173,7 @@ def webcrawler(weblink,titles,hyperlink_all,newwords,iterations,finished_link_va
     for link in heading2:
 
       x = link.get_text(strip=True,separator=' ')
+      x = x.replace("'", "") 
       x = ''.join(' ' if char in string.punctuation else char for char in x)
 
       x = x.replace('\n', '').replace('\r', '').replace('\xa0', '').replace('\t','')
@@ -199,8 +201,7 @@ def webcrawler(weblink,titles,hyperlink_all,newwords,iterations,finished_link_va
     for link in transcript:
 
       x = link.get_text(strip=True,separator=' ')
-
-      #x = ''.join(' ' if char in string.punctuation else char for char in x)
+      x = x.replace("'", "") 
       x = ''.join(' ' if char in string.punctuation else char for char in x)
 
       x = x.replace('\n', '').replace('\r', '').replace('\xa0', '').replace('\t','')
@@ -231,6 +232,7 @@ def webcrawler(weblink,titles,hyperlink_all,newwords,iterations,finished_link_va
   hyperlink_storage.append(hyperlink_var)
 
   x = soup.get_text(strip=True,separator=' ')
+  x = x.replace("'", "") 
   x = ''.join(' ' if char in string.punctuation else char for char in x)
 
   x = x.replace('\n', '').replace('\r', '').replace('\xa0', '').replace('\t','')
@@ -350,6 +352,7 @@ for wordsindoc in all_newwords:
 #titles_wout_punct =  [sublist.translate(translator) for sublist in all_titles]
 titles_wout_punct = []
 for sublist in all_titles:
+  sublist = sublist.replace("'", "") 
   x = ''.join(' ' if char in string.punctuation else char for char in sublist)
   x = ' '.join(x.split())  # Remove extra spaces between words
 

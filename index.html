@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+    <meta charset="utf-8">
+    <!-- Load font for title -->
+    <title>COMP4321 Search Engine</title>
+     
+    <!-- Load font for body text -->
+    <link rel="preconnect" href="https://rsms.me/">
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+    
+    <!-- Load styles -->
+    <link rel="stylesheet" href="../static/style.css">
+    <link rel="stylesheet" href="../static/index.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body>
+<main>
+    <div class="main-page">
+        <!-- Website title -->
+        <h2>COMP 4321 Search Engine</h2>
+
+        <!-- Search bar and button -->
+        <form class="search-row" name="search-row" action="{{ url_for('submit_search') }}" method="post">
+            <input type="text" id="searchbar" name="searchbar" class="searchbar" placeholder="Search" />
+            <button type="submit" value="Submit" class="search-button"></button>
+            <select name="history" id="history" class="clear-dropdown" onchange="this.form.submit()">
+                <option value="history" selected disabled>History</option>
+                {% for query in HISTORY %}
+                    <option value="{{ query }}">{{ query }}</option>
+                {% endfor %}
+            </select>
+        </form>
+
+
+    <div class="byline"></a></p></div>
+</main>
+</body>
+</html>

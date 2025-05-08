@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+    <meta charset="utf-8">
+    <title>COMP4321 Search Engine</title>
+    
+    
+</head>
+
+<body>
+    <div class="result-top">
+        <a href="{{ url_for('searchbar') }}"><h2>COMP4321 Search Engine</h2></a>
+        <form class="search-row" action="{{ url_for('submit_search') }}" method="post">
+            <input type="text" id="searchbar" name="searchbar" class="searchbar" placeholder="search {{ QUERY }} ">
+            <button type="submit" value="Submit" class="search-button"></button>
+            <select name="history" id="history" class="clear-dropdown" onchange="this.form.submit()">
+                <option value="history" selected disabled>History</option>
+                {% for query in HISTORY %}
+                    <option value="{{ query }}">{{ query }}</option>
+                {% endfor %}
+            </select>
+        </form>
+        {% if RESULTS | length != 1 %}
+            <p class="results-count"> time taken {{ TIME_TAKEN }}s</p>
+        {% else %}
+            <p class="results-count"> time taken {{ TIME_TAKEN }}s</p>
+        {% endif %}
+    </div>
+
+    <!-- Results -->
+    <div class="results-section">
+        {% for result in RESULTS %}
+            <div class="search-result">
+                <!-- Title hyperlink and score -->
+                <div class="title-score-row">
+                    <a class="result-title-link" href="{{ result.url }}"><h3 class="result-title">{{ result.title }}</h3></a>
+                    <button class="keyword-box score-box">Score: {{ result.score }}</button>
+                </div>
+
+                <!-- Most frequent stemmed keywords and frequencies -->
+                <div class="keywords-row">
+                    {% for keyword, freq in result.keywords %}
+                        <button class="keyword-box">{{ keyword }}: {{ freq }}</button>
+                    {% endfor %}
+                </div>
+
+                <!-- URL -->
+                <p class="result-url"><a href="{{ result.url }}">{{ result.url }}</a></p>
+                <!-- Last modification date, size of page -->
+
+                <p class="result-date-size">Last modified: {{ result.time_formatted }} | Page size: {{ result.size }}</p>
+                <!-- Parent links -->
+
+                <details class="result-parents-collapse">
+                    <summary class="result-parents-summary">Parent links ({{ result.parent_links | length }})</summary>
+                    <ul class="result-parents-list">
+                        {% for parent in result.parent_links %}
+                            <li class="result-parent-link"><a href="{{ parent }}">{{ parent }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </details>
+                <!-- Child links -->
+                <details class="result-children-collapse">
+                    <summary class="result-children-summary">Child links ({{ result.child_links | length }})</summary>
+                    <ul class="result-children-list">
+                        {% for child in result.child_links %}
+                            <li class="result-child-link"><a href="{{ child }}">{{ child }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </details>
+            </div>
+        {% endfor %}
+    </div>
+
+</body>

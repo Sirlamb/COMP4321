@@ -39,29 +39,36 @@ all_date = []
 
 # this can do the Ngram, which will also be applied to the query
 def phrase_extraction(anotherlist_var):
+  #print(len(anotherlist_var))
   bigrams = list(ngrams(anotherlist_var, 2))
   trigrams = list(ngrams(anotherlist_var, 3))
 
   bigram_strings = [' '.join(bigram) for bigram in bigrams]
+  #print(bigram_strings)
   trigram_strings = [' '.join(trigram) for trigram in trigrams]
 
   # Count the frequency of each phrase
   bigram_freq = Counter(bigram_strings)
   trigram_freq = Counter(trigram_strings )
-  if len(anotherlist_var)<30:
+  if len(anotherlist_var)<40:
+  # Filter out the phrase with frequency less than 1
+    bigram_renew = [word for word in bigram_strings if bigram_freq[word] >= 1]
+    trigram_renew = [word for word in trigram_strings if trigram_freq[word] >= 1]
+  elif len(anotherlist_var)<100:
   # Filter out the phrase with frequency less than 2
     bigram_renew = [word for word in bigram_strings if bigram_freq[word] >= 2]
     trigram_renew = [word for word in trigram_strings if trigram_freq[word] >= 2]
 
-  elif len(anotherlist_var)<100:
+  elif len(anotherlist_var)<200:
     bigram_renew = [word for word in bigram_strings if bigram_freq[word] >= 3]
     trigram_renew = [word for word in trigram_strings if trigram_freq[word] >= 3]
-  elif len(anotherlist_var)<150:
+  elif len(anotherlist_var)<300:
     bigram_renew = [word for word in bigram_strings if bigram_freq[word] >= 4]
     trigram_renew = [word for word in trigram_strings if trigram_freq[word] >= 4]
   else:
     bigram_renew = [word for word in bigram_strings if bigram_freq[word] >= 5]
     trigram_renew = [word for word in trigram_strings if trigram_freq[word] >= 5]
+  #print(bigram_renew)
   anotherlist_var.extend(bigram_renew)
   anotherlist_var.extend(trigram_renew)
   return anotherlist_var
@@ -149,7 +156,7 @@ def phrase_extraction_for_query(anotherlist_var):
   return anotherlist_var
 
 def webcrawler(weblink,titles,hyperlink_all,newwords,iterations,finished_link_var):
-  if iterations >= 25:
+  if iterations >= 300:
 
     return
 
@@ -303,7 +310,7 @@ webcrawler(url,all_titles,all_hyperlink,all_newwords,final_iterations,finished_l
 with open('stopwords.txt', 'r') as file:
     stopwords = file.read().splitlines()
 
-
+#print(all_newwords)
 
 sizeofpage = []
 frequency_position = []
@@ -361,7 +368,7 @@ for wordsindoc in all_newwords:
     term_freq[word] = frequency
   frequency_position.append(temp)
   term_freq_per_doc.append(term_freq)
-
+#print(frequency_position)
 
 #title
 #remove all punctuation in the title_list
@@ -382,7 +389,7 @@ for sublist in all_titles:
 
     #HERE 
     titles_wout_punct.append(y)
-    
+
 cleaned_words = []
 for sublist in titles_wout_punct:
 
@@ -462,7 +469,7 @@ for i in range(len(term_freq_per_doc)):
       frequency_position[i] = filtered_list
   #print(len(frequency_position[i]), end=' ')
 
-
+#print(frequency_position)
 #now, after the above coding, the aray frequency_position will remove the terms that shouldnt be treated as keywoords due to its low tfidf
 
 
@@ -633,7 +640,5 @@ print('spider done')
 
 end_time = time.time()
 print('time used:', end_time-start_time)
-
-
 
 

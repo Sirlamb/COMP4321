@@ -300,7 +300,7 @@ webcrawler(url,all_titles,all_hyperlink,all_newwords,final_iterations,finished_l
     stopwords = file.read().splitlines()'''
 
 
-with open('/content/gdrive/MyDrive/comp 4321/stopwords.txt', 'r') as file:
+with open('stopwords.txt', 'r') as file:
     stopwords = file.read().splitlines()
 
 

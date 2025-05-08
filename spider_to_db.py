@@ -73,23 +73,41 @@ def phrase_extraction(anotherlist_var):
 def stemming_for_query(all_newwords_var):
   stemmer = PorterStemmer()
   nlp = spacy.load("en_core_web_sm")
-  new_words_stemming_var = []
-  for word_list in all_newwords_var:
+  sublist = all_newwords_var.replace("'", "")
+  x = ''.join(' ' if char in string.punctuation else char for char in sublist)
+  x = ' '.join(x.split())  # Remove extra spaces between words
+  y = x.split(" ") # split the strings to list
+  y = phrase_extraction_for_query(y)
 
+  storing_var = []
+  for wordlist in y:
+    words = wordlist.split()
+    num = 0
+    for x in words:
 
-    doc = nlp(word_list)
+      if x in stopwords or (not x):
 
-    temporary = []
-    for token in doc:
-      x = token.lemma_
-      x = stemmer.stem(x)
-      temporary.append(x)
-    #combined_string = ' '.join(temporary)
-    new_words_stemming_var.append(temporary)
+        num=1
+        break
+    if num==0:
+      doc = nlp(wordlist)
+      print(doc)
 
-  #new_words_stemming_var.append(storing_var)
-  return new_words_stemming_var
+      if len(doc)==1:
 
+        for token in doc:
+          x = token.lemma_
+          x = stemmer.stem(x)
+          storing_var.append(x)
+      else:
+        temporary = []
+        for token in doc:
+          x = token.lemma_
+          x = stemmer.stem(x)
+          temporary.append(x)
+        combined_string = ' '.join(temporary)
+        storing_var.append(combined_string)
+  return storing_var
 # this is the stemming function, which will also be applied to the query
 def stemming(all_newwords_var):
   stemmer = PorterStemmer()
@@ -155,7 +173,7 @@ def webcrawler(weblink,titles,hyperlink_all,newwords,iterations,finished_link_va
     for link in title1:
 
       x = link.get_text(strip=True,separator=' ')
-      x = x.replace("'", "") 
+      x = x.replace("'", "")
       x = ''.join(' ' if char in string.punctuation else char for char in x)
 
       x = x.replace('\n', '').replace('\r', '').replace('\xa0', '').replace('\t','')
@@ -173,7 +191,7 @@ def webcrawler(weblink,titles,hyperlink_all,newwords,iterations,finished_link_va
     for link in heading2:
 
       x = link.get_text(strip=True,separator=' ')
-      x = x.replace("'", "") 
+      x = x.replace("'", "")
       x = ''.join(' ' if char in string.punctuation else char for char in x)
 
       x = x.replace('\n', '').replace('\r', '').replace('\xa0', '').replace('\t','')
@@ -201,7 +219,7 @@ def webcrawler(weblink,titles,hyperlink_all,newwords,iterations,finished_link_va
     for link in transcript:
 
       x = link.get_text(strip=True,separator=' ')
-      x = x.replace("'", "") 
+      x = x.replace("'", "")
       x = ''.join(' ' if char in string.punctuation else char for char in x)
 
       x = x.replace('\n', '').replace('\r', '').replace('\xa0', '').replace('\t','')
@@ -232,7 +250,7 @@ def webcrawler(weblink,titles,hyperlink_all,newwords,iterations,finished_link_va
   hyperlink_storage.append(hyperlink_var)
 
   x = soup.get_text(strip=True,separator=' ')
-  x = x.replace("'", "") 
+  x = x.replace("'", "")
   x = ''.join(' ' if char in string.punctuation else char for char in x)
 
   x = x.replace('\n', '').replace('\r', '').replace('\xa0', '').replace('\t','')
@@ -244,7 +262,7 @@ def webcrawler(weblink,titles,hyperlink_all,newwords,iterations,finished_link_va
 
     words.append(y)
 
-  
+
   for number in range(len(words)):
     anotherlist +=words[number]
     # put all list tgt to one list
@@ -282,7 +300,7 @@ webcrawler(url,all_titles,all_hyperlink,all_newwords,final_iterations,finished_l
     stopwords = file.read().splitlines()'''
 
 
-with open('stopwords.txt', 'r') as file:
+with open('/content/gdrive/MyDrive/comp 4321/stopwords.txt', 'r') as file:
     stopwords = file.read().splitlines()
 
 
@@ -352,14 +370,38 @@ for wordsindoc in all_newwords:
 #titles_wout_punct =  [sublist.translate(translator) for sublist in all_titles]
 titles_wout_punct = []
 for sublist in all_titles:
-  sublist = sublist.replace("'", "") 
+  sublist = sublist.replace("'", "")
   x = ''.join(' ' if char in string.punctuation else char for char in sublist)
   x = ' '.join(x.split())  # Remove extra spaces between words
+  y = x.split(" ") # split the strings
+  if y:
+    y = [item.lower() for item in y if item]
 
-  titles_wout_punct.append(x)
+
+    y = phrase_extraction_for_query(y)
+  titles_wout_punct.append(y)
+
+for sublist in titles_wout_punct:
 
 
-titles_test = stemming_for_query(titles_wout_punct)
+  storing = []
+  for wordlist in sublist:
+    words = wordlist.split()
+    num = 0
+    for x in words:
+
+      if x in stopwords or not x:
+
+        num=1
+        break
+    if num==0:
+
+      combined_string = ' '.join(words)
+      storing.append(combined_string)
+  cleaned_words.append(storing)
+titles_wout_punct = cleaned_words
+
+titles_index = stemming(titles_wout_punct)
 #print(titles_test)
 
 
@@ -368,11 +410,11 @@ titles_test = stemming_for_query(titles_wout_punct)
 
 content_terms = set()
 title_terms = []
-title_index = []
-for x in titles_test :
-  y = phrase_extraction_for_query(x)
+
+for y in titles_index :
+
   unique_title_terms = set(y)
-  title_index.append(y)
+
   title_terms.append(unique_title_terms)
 
 #now  title_terms is an list containing dictionaries with title words and phrase in that document
@@ -396,7 +438,7 @@ for doc_idx, doc_keywords in enumerate(all_newwords):
             #term_tf[term][doc_idx] = tf
 
 
-TFIDF_THRESHOLD = 0.02
+TFIDF_THRESHOLD = 0.05
 removed_terms = []
 
 for i in range(len(term_freq_per_doc)):
@@ -511,7 +553,7 @@ for words in frequency_position:
       ''', (keyword_id_counter, keyword))
       keyword_id_counter += 1
 
-for doc_phrases in title_index:
+for doc_phrases in titles_index:
     for phrase in doc_phrases:
         if phrase not in keyword_id_map:
             keyword_id_map[phrase] = keyword_id_counter
@@ -544,7 +586,7 @@ for idx, (title, link, hyperlink, words, size, date) in enumerate(zip(all_titles
   ''', (page_id, title, date, size))
 
 
-  title_phrases = title_index[idx]
+  title_phrases = titles_index[idx]
   for phrase in title_phrases:
 
       phrase_counts = Counter(title_phrases)

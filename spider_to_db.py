@@ -1,7 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
 import string
-# from collections import Counter
 import sqlite3
 import time
 import nltk
@@ -11,6 +10,7 @@ from nltk import ngrams
 from collections import Counter
 from collections import defaultdict
 import math
+import numpy as np
 
 
 start_time = time.time()
@@ -36,6 +36,36 @@ hyperlink_storage = []
 #last modified date
 all_date = []
 
+def createAdjMatrix(allPages):
+    "input list[int] of all page ids, output adjacency matrix"
+    matrixMap = {key: {val: 0 for val in allPages} for key in allPages}
+
+    for page in allPages:
+        children = c.execute("SELECT child_id FROM parent_child WHERE parent_id = ?", (page,)).fetchall()
+        for child in children:
+            matrixMap[page][child[0]] = 1
+
+    matrixList = [[val for val in matrixMap[key].values()] for key in matrixMap.keys()]
+    return np.array(matrixList).T
+
+def page_rank(curPageRankScore: np.ndarray[int], adjacency_matrix: np.ndarray[np.ndarray[int]],
+              teleportation_probability: float, max_iterations: int = 100) -> np.ndarray[int]:
+    # Initialize the PageRank scores with a uniform distribution
+    page_rank_scores = curPageRankScore
+
+    # Iteratively update the PageRank scores
+    for _ in range(max_iterations):
+        # Perform the matrix-vector multiplication
+        new_page_rank_scores = adjacency_matrix.dot(page_rank_scores)
+
+        # Add the teleportation probability
+        new_page_rank_scores = teleportation_probability + (1 - teleportation_probability) * new_page_rank_scores
+        # Check for convergence
+        if np.allclose(page_rank_scores, new_page_rank_scores):
+            break
+
+    page_rank_scores = new_page_rank_scores
+    return page_rank_scores
 
 # this can do the Ngram, which will also be applied to the query
 def phrase_extraction(anotherlist_var):
@@ -156,7 +186,7 @@ def phrase_extraction_for_query(anotherlist_var):
   return anotherlist_var
 
 def webcrawler(weblink,titles,hyperlink_all,newwords,iterations,finished_link_var):
-  if iterations >= 300:
+  if iterations >= 30:
 
     return
 
@@ -387,7 +417,7 @@ for sublist in all_titles:
 
     y = phrase_extraction_for_query(y)
 
-    #HERE 
+    #HERE
     titles_wout_punct.append(y)
 
 cleaned_words = []
@@ -527,7 +557,8 @@ CREATE TABLE IF NOT EXISTS keyword_2_id (
 c.execute('''
 CREATE TABLE IF NOT EXISTS link_2_id (
     link_id INTEGER PRIMARY KEY,
-    link TEXT
+    link TEXT,
+    page_rank INTEGER
 )
 ''')
 c.execute('''
@@ -641,4 +672,18 @@ print('spider done')
 end_time = time.time()
 print('time used:', end_time-start_time)
 
-
+# prepare page rank
+connection = sqlite3.connect('database.db')
+c = connection.cursor()
+allPages = [page[0] for page in c.execute("SELECT link_id FROM link_2_id").fetchall()]
+adjacencyMatrix = createAdjMatrix(allPages)
+pageRankScores = page_rank(np.ones(len(allPages)), adjacencyMatrix, 0.85)
+print(pageRankScores, '\n')
+for i in range(len(allPages)):
+    c.execute('''
+        UPDATE link_2_id
+        SET page_rank = ?
+        WHERE link_id = ?
+    ''', (pageRankScores[i], allPages[i]))
+connection.commit()
+connection.close()

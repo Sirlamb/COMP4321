@@ -379,8 +379,11 @@ for sublist in all_titles:
 
 
     y = phrase_extraction_for_query(y)
-  titles_wout_punct.append(y)
 
+    #HERE 
+    titles_wout_punct.append(y)
+    
+cleaned_words = []
 for sublist in titles_wout_punct:
 
 
@@ -630,5 +633,7 @@ print('spider done')
 
 end_time = time.time()
 print('time used:', end_time-start_time)
+
+
 
 

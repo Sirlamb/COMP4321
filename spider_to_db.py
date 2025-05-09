@@ -106,10 +106,9 @@ def phrase_extraction(anotherlist_var):
 
 
 
-
 def stemming_for_query(all_newwords_var):
   stemmer = PorterStemmer()
-  nlp = spacy.load("en_core_web_sm")
+  #nlp = spacy.load("en_core_web_sm")
   sublist = all_newwords_var.replace("'", "")
   x = ''.join(' ' if char in string.punctuation else char for char in sublist)
   x = ' '.join(x.split())  # Remove extra spaces between words
@@ -127,20 +126,20 @@ def stemming_for_query(all_newwords_var):
         num=1
         break
     if num==0:
-      doc = nlp(wordlist)
-      print(doc)
+      doc = word.split()
+      
 
       if len(doc)==1:
 
         for token in doc:
-          x = token.lemma_
-          x = stemmer.stem(x)
+          #x = token.lemma_
+          x = stemmer.stem(token)
           storing_var.append(x)
       else:
         temporary = []
         for token in doc:
-          x = token.lemma_
-          x = stemmer.stem(x)
+          #x = token.lemma_
+          x = stemmer.stem(token)
           temporary.append(x)
         combined_string = ' '.join(temporary)
         storing_var.append(combined_string)
@@ -148,25 +147,25 @@ def stemming_for_query(all_newwords_var):
 # this is the stemming function, which will also be applied to the query
 def stemming(all_newwords_var):
   stemmer = PorterStemmer()
-  nlp = spacy.load("en_core_web_sm")
+  #nlp = spacy.load("en_core_web_sm")
   new_words_stemming_var = []
 
   for word_list in all_newwords_var:
     storing_var = []
 
     for word in word_list:
-      doc = nlp(word)
+      doc = word.split()
       if len(doc)==1:
 
         for token in doc:
-          x = token.lemma_
-          x = stemmer.stem(x)
+          #x = token.lemma_
+          x = stemmer.stem(token)
           storing_var.append(x)
       else:
         temporary = []
         for token in doc:
-          x = token.lemma_
-          x = stemmer.stem(x)
+          #x = token.lemma_
+          x = stemmer.stem(token)
           temporary.append(x)
         combined_string = ' '.join(temporary)
         storing_var.append(combined_string)

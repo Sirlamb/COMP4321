@@ -1,26 +1,27 @@
 import sqlite3
 
-tables = ['web_info', 'forward_idx', 'inverted_idx', 'parent_child', 
-         'keyword_2_id', 'link_2_id', 'title_forward_index', 'title_inverted_index']
-# web_info: page_id, title, date, size
-# forward_idx: page_id, keyword_id, frequency, position
-# inverted_idx, keyword_id, page_id
-# parent_child: parent_id, child_id
-# keyword_2_id: keyword_id, keyword
-# link_2_id: link_id, link
+def write_all_tables_contents(db_file, output_file):
+    conn = sqlite3.connect(db_file)
+    cursor = conn.cursor()
+    
+    # Open text file for writing
+    with open(output_file, 'w', encoding='utf-8') as f:
+        # List all tables
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+        tables = cursor.fetchall()
 
-connection = sqlite3.connect('database.db')
-cursor = connection.cursor()
+        # Write data from each table to file
+        for table in tables:
+            table_name = table[0]
+            f.write(f"\nContents of table: {table_name}\n")
+            cursor.execute(f"SELECT * FROM {table_name}")
+            rows = cursor.fetchall()
+            for row in rows:
+                f.write(f"{row}\n")
 
-for table in tables:
-    cursor.execute(f'SELECT * FROM {table}')
-    rows = cursor.fetchall()
-    print(table)
-    for row in rows:
-        print(row)
-    print('\n')
+    conn.close()
 
-connection.close()
-
-# use the follow code for searching
-# SELECT * FROM table_name WHERE colume_name < 2 AND colume_name = 'apple';
+# Usage
+db_file = 'database.db'  # Replace with your database file
+output_file = 'database_contents.txt'  # Output file name
+write_all_tables_contents(db_file, output_file)

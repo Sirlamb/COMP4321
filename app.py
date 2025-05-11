@@ -3,8 +3,22 @@ import timeit
 from typing import List
 import json
 
-from src import retriever   #src is a folder in the same directory as app.py
+from src import retriever  
 from src.util import SearchResult
+
+import numpy as np
+import re
+from math import log2
+from time import time
+from nltk.stem import PorterStemmer as Stemmer
+import sqlite3
+from zlib import crc32
+from pathlib import Path
+from itertools import chain
+from collections import Counter
+import sqlite3
+import os 
+
 
 app = Flask(__name__)
 
@@ -24,21 +38,27 @@ def submit_search():
     """
 
     # Get query from search bar
-    query = request.form.get('searchbar')
-    # or history dropdown menu
+    query: str = request.form.get('searchbar')
+
     if not query:
         query = request.form.get('history')
 
+    if not query:
+        query = ""
 
     # Time the search operation
     start_time = timeit.default_timer()
 
-    # Pass query into search engine and calulate time taken 
-    query_parsed = retriever.parse_string(query)
-    search_results_raw = retriever.search_engine(query_parsed)
-    search_results_raw = retriever.search_engine([])  # DEBUG SKIP
+    # Pass query into search engine
     search_results_raw = retriever.search_engine(query)
     search_time_taken = timeit.default_timer() - start_time
+
+    # Pass query 
+
+    search_results_raw = retriever.search_engine(query)
+    print(search_results_raw)
+    end_time = timeit.default_timer()
+    search_time_taken = end_time - start_time
 
     # Get data of the search results
     # k: page ID
@@ -48,13 +68,18 @@ def submit_search():
         if val != 0:
             search_results.append(SearchResult(key, val))
 
+    print(search_results)
+
+    # Get search history
+    history = json.loads(request.cookies.get('history', default="{}"))
+
     # Get search history
     history = json.loads(request.cookies.get('history', default="{}"))
 
     # Set up response
     res = make_response(
         render_template(
-            "search_results.html",
+            "search_history.html",
             QUERY=query,
             RESULTS=search_results,
             TIME_TAKEN=search_time_taken,
@@ -63,7 +88,7 @@ def submit_search():
     )
 
     # Add query to search history
-    history = json.loads(request.cookies.get('history', default="[]"))
+    history: List[str] = json.loads(request.cookies.get('history', default="[]"))
     if (query not in history) and (query != ""):
         history.append(query)
     res.set_cookie("history", json.dumps(history))

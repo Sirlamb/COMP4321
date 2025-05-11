@@ -4,13 +4,13 @@ import string
 import sqlite3
 import time
 import nltk
-import spacy
 from nltk.stem import PorterStemmer
 from nltk import ngrams
 from collections import Counter
 from collections import defaultdict
 import math
 import numpy as np
+
 
 
 start_time = time.time()
@@ -50,15 +50,15 @@ def createAdjMatrix(allPages):
 
 def page_rank(curPageRankScore: np.ndarray[int], adjacency_matrix: np.ndarray[np.ndarray[int]],
               teleportation_probability: float, max_iterations: int = 100) -> np.ndarray[int]:
-    # Initialize the PageRank scores with a uniform distribution
+
     page_rank_scores = curPageRankScore
 
-    # Iteratively update the PageRank scores
+
     for _ in range(max_iterations):
-        # Perform the matrix-vector multiplication
+
         new_page_rank_scores = adjacency_matrix.dot(page_rank_scores)
 
-        # Add the teleportation probability
+
         new_page_rank_scores = teleportation_probability + (1 - teleportation_probability) * new_page_rank_scores
         # Check for convergence
         if np.allclose(page_rank_scores, new_page_rank_scores):
@@ -67,7 +67,48 @@ def page_rank(curPageRankScore: np.ndarray[int], adjacency_matrix: np.ndarray[np
     page_rank_scores = new_page_rank_scores
     return page_rank_scores
 
-# this can do the Ngram, which will also be applied to the query
+def stemming_for_query(all_newwords_var):
+  stemmer = PorterStemmer()
+  #nlp = spacy.load("en_core_web_sm")
+  sublist = all_newwords_var.replace("'", "")
+  x = ''.join(' ' if char in string.punctuation else char for char in sublist)
+  x = ' '.join(x.split())  # Remove extra spaces between words
+  y = x.split(" ") # split the strings to list
+  y = phrase_extraction_for_query(y)
+  with open('stopwords.txt', 'r') as file:
+      stopwords = file.read().splitlines()
+
+  storing_var = []
+  for wordlist in y:
+    words = wordlist.split()
+    num = 0
+    for x in words:
+
+      if x in stopwords or (not x):
+
+        num=1
+        break
+    if num==0:
+      doc = words
+
+
+      if len(doc)==1:
+
+        for token in doc:
+          #x = token.lemma_
+          x = stemmer.stem(token)
+          storing_var.append(x)
+      else:
+        temporary = []
+        for token in doc:
+          #x = token.lemma_
+          x = stemmer.stem(token)
+          temporary.append(x)
+        combined_string = ' '.join(temporary)
+        storing_var.append(combined_string)
+  return storing_var
+
+
 def phrase_extraction(anotherlist_var):
   #print(len(anotherlist_var))
   bigrams = list(ngrams(anotherlist_var, 2))
@@ -105,46 +146,7 @@ def phrase_extraction(anotherlist_var):
 
 
 
-
-def stemming_for_query(all_newwords_var):
-  stemmer = PorterStemmer()
-  #nlp = spacy.load("en_core_web_sm")
-  sublist = all_newwords_var.replace("'", "")
-  x = ''.join(' ' if char in string.punctuation else char for char in sublist)
-  x = ' '.join(x.split())  # Remove extra spaces between words
-  y = x.split(" ") # split the strings to list
-  y = phrase_extraction_for_query(y)
-
-  storing_var = []
-  for wordlist in y:
-    words = wordlist.split()
-    num = 0
-    for x in words:
-
-      if x in stopwords or (not x):
-
-        num=1
-        break
-    if num==0:
-      doc = word.split()
-      
-
-      if len(doc)==1:
-
-        for token in doc:
-          #x = token.lemma_
-          x = stemmer.stem(token)
-          storing_var.append(x)
-      else:
-        temporary = []
-        for token in doc:
-          #x = token.lemma_
-          x = stemmer.stem(token)
-          temporary.append(x)
-        combined_string = ' '.join(temporary)
-        storing_var.append(combined_string)
-  return storing_var
-# this is the stemming function, which will also be applied to the query
+# this is the stemming function, which will also be applied to the query, but due to the format, we have another stemming function for query
 def stemming(all_newwords_var):
   stemmer = PorterStemmer()
   #nlp = spacy.load("en_core_web_sm")
@@ -185,7 +187,7 @@ def phrase_extraction_for_query(anotherlist_var):
   return anotherlist_var
 
 def webcrawler(weblink,titles,hyperlink_all,newwords,iterations,finished_link_var):
-  if iterations >= 30:
+  if iterations >= 300:
 
     return
 
@@ -320,20 +322,7 @@ def webcrawler(weblink,titles,hyperlink_all,newwords,iterations,finished_link_va
     webcrawler(x,titles,hyperlink_all,newwords,iterations,finished_link_var)
 
 webcrawler(url,all_titles,all_hyperlink,all_newwords,final_iterations,finished_link)
-# print("")
-# print("titles are ", all_titles)
-# print(len(all_titles))
-# print("hyperlinks are", all_hyperlink)
-# print(len(all_hyperlink))
-# print("words are", all_newwords)
-# print(len(all_newwords))
 
-
-
-# stopword table
-
-'''with open('stopwords.txt', 'r') as file:
-    stopwords = file.read().splitlines()'''
 
 
 with open('stopwords.txt', 'r') as file:
@@ -348,7 +337,7 @@ sizeofpagewoutstopword = []
 
 for sublist in all_newwords:
   sizeofpage.append(int(len(sublist)))
-  # need ask whether the size of the doc include stopwords we think it is without stopwords
+
 
   storing = []
   for wordlist in sublist:
@@ -460,7 +449,7 @@ for y in titles_index :
 
 
 #term selection
-# to do this, we form 2 dictionary. one stores term freqeuncy one stores doc frequency
+
 doc_freq = defaultdict(int)
 #term_tf = defaultdict(dict)
 total_docs = len(hyperlink_storage)
@@ -477,7 +466,7 @@ for doc_idx, doc_keywords in enumerate(all_newwords):
             #term_tf[term][doc_idx] = tf
 
 
-TFIDF_THRESHOLD = 0.05
+TFIDF_THRESHOLD = 0.015
 removed_terms = []
 
 for i in range(len(term_freq_per_doc)):
@@ -686,3 +675,4 @@ for i in range(len(allPages)):
     ''', (pageRankScores[i], allPages[i]))
 connection.commit()
 connection.close()
+

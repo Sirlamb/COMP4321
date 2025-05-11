@@ -15,7 +15,7 @@ install the required packages
 pip install -r requirements.txt
 
 To execute the program
-Down and unzip the folder comp4321
+Download and unzip the folder comp4321
 First run webcrawl_final.py to generate the database file and prepare the Web interface
 Use http://127.0.0.1:5000 to enter the web interface
 Enter the search query into the text box and press enter for search

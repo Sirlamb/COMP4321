@@ -285,10 +285,6 @@ for doc in allDocs:
 
         """,(doc,)).fetchone()[0]
     
-    # Text_globalPageStemText[doc] = cursor.execute(
-    #     """
-    #         SELECT keyword FROM page_id_word_stem WHERE link_id = ?
-    #     """,(doc,)).fetchone()[0]
 
 for word_id,word in cursor.execute(
     """

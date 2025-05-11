@@ -16,5 +16,8 @@ pip install -r requirements.txt
 
 To execute the program
 Down and unzip the folder comp4321
-First run webcrawl_final.py to generate a database file
-Then run the app.py to use the web interface
+First run webcrawl_final.py to generate the database file and prepare the Web interface
+Use http://127.0.0.1:5000 to enter the web interface
+Enter the search query into the text box and press enter for search
+Press the back button at upper left corner for search another query
+After use, press CTRL+C to exit the program code in the terminal

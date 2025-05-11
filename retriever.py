@@ -9,6 +9,7 @@ from pathlib import Path
 from itertools import chain
 from collections import Counter
 import sqlite3
+import os 
 
 ALPHA = 0.8 #titles matching
 BETA = 1 - ALPHA #text matching 
@@ -25,14 +26,16 @@ Text_globalPageStemText = {}
 allDocs = []
 
 ps = Stemmer()
-db_path = 'database.db'
-stopword_path = 'stopwords.txt'
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+db_path = os.path.join(BASE_DIR, "database.db")
+
+stopword_path = str(Path.cwd().parent ) + 'stopwords.txt'
 globalWordtoID = {}
 
-with open(stopword_path, 'r') as file:
+with open( 'stopwords.txt', 'r') as file:
     stopwords = file.read().split()
 
-connection = sqlite3.connect(db_path)
+connection = sqlite3.connect(db_path)  # Set check_same_thread to False because Flask initialized the connection in a different thread, this is safe because the search engine is read only
 cursor = connection.cursor()
 
 DOCUMENT_COUNT = cursor.execute(
@@ -42,31 +45,36 @@ DOCUMENT_COUNT = cursor.execute(
 
 DOCUMENT_COUNT = float(DOCUMENT_COUNT)
 
-def parse_string(query):
+def parse_string(query: str)->list[list[int]]:
     """
-    query: The string entered in the text box
-
+    `Input`: query: str: The string entered in the text box
     `Return`: Array of arrays, 
         `index 0`: is the encoding of the all words in the string
         `index 1`: is the encoding of the words which are phrases
     """
+
     resultArray = []
+    # Create two arrays of phrases and words to be queried.
     start = time()
     single_word = []
 
     for idx,word in enumerate(query.split()):
         if (idx == 10000):
             break
-        processedWord = re.sub("[^a-zA-Z-]+", "", word.lower())
-        if (processedWord not in stopword_path):
+        processedWord:str = re.sub("[^a-zA-Z-]+", "", word.lower())
+        stemmedWord:str
+        if (processedWord not in stopwords):
             stemmedWord = ps.stem(processedWord)
-            single_word.append(globalWordtoID[stemmedWord])
+            try:
+                single_word.append(globalWordtoID[stemmedWord])
+            except:
+                pass
 
     resultArray.append(single_word)
     end = time()
     print("time taken for query:", end - start)
     
-    # Remove every stopwords in the single_word 
+    # Remove every stopwords in the single_word as they are not necessary.
     # During the process we will also stem the word
     phrases_no_stopword = []
     phrases = [x.lower() for x in re.findall('"([^"]*)"', query) if x]
@@ -75,6 +83,7 @@ def parse_string(query):
 
         resultwords = [ps.stem(word) for word in querywords if word.lower() not in stopwords]
         result = r"(?<!\S){}(?!\S)".format(" ".join(resultwords))
+
         phrases_no_stopword.append(result)
 
     resultArray.append(phrases_no_stopword)
@@ -194,11 +203,12 @@ def queryFilter(doc_id, query):
 
 
 
-def search_engine(query):   #need fix query below in pagerank 
+def search_engine(query: str)->dict[int,float]:
     if (query == None or query == ""):
         return {}
     
     splitted_query = parse_string(query)
+
     if (len(splitted_query[0]) == 0): # incase query is something out of the db
         return {}
     
@@ -251,3 +261,37 @@ def search_engine(query):   #need fix query below in pagerank
     combined_Scores = dict(sorted(combined_Scores.items(), key=lambda item: item[1],reverse=True)[:MAX_RESULTS])
 
     return combined_Scores
+
+
+
+allDocs:list[int] = cursor.execute(
+    """
+        SELECT link_id FROM link_2_id                              
+    """).fetchall()
+
+for doc in allDocs:
+    doc = doc[0]
+    Title_globalPageDict[doc] = documentToVec(doc,True)
+    Text_globalPageDict[doc] = documentToVec(doc)
+    
+    Title_globalPageStemText[doc] = cursor.execute(
+        """
+            SELECT k.keyword
+            FROM link_2_id l
+            JOIN web_info w ON l.link_id = w.link_id  
+            JOIN forward_idx f ON w.link_id = f.link_id
+            JOIN keyword_2_id k ON f.keyword_id = k.keyword_id
+            WHERE l.link_id = ?;
+
+        """,(doc,)).fetchone()[0]
+    
+    # Text_globalPageStemText[doc] = cursor.execute(
+    #     """
+    #         SELECT keyword FROM page_id_word_stem WHERE link_id = ?
+    #     """,(doc,)).fetchone()[0]
+
+for word_id,word in cursor.execute(
+    """
+        SELECT keyword_id, keyword FROM keyword_2_id
+    """).fetchall():
+    globalWordtoID[word] = word_id
